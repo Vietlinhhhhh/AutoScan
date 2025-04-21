@@ -1,125 +1,3 @@
-# import os
-# import csv
-# import shutil
-# import time
-# from datetime import datetime
-# from pathlib import Path
-# import tkinter as tk
-# from tkinter import scrolledtext
-
-# def process_failed_folder(failed_folder_path, target_folder_path):
-#     """Xử lý các file CSV trong thư mục ThatBai"""
-#     print(f"🔍 Đang tìm kiếm trong thư mục: {failed_folder_path}")
-#     # Chỉ lấy file CSV có tên ngắn hơn 41 ký tự
-#     # csv_files = [f for f in os.listdir(failed_folder_path) 
-#     #             if f.lower().endswith('.csv') and len(f) < 41]
-    
-#     # date_folder = os.path.basename(failed_folder_path)
-#     # print(f"📂 Tìm thấy {len(csv_files)} file CSV hợp lệ trong ThatBai/{date_folder}")
-    
-#     csv_files = [f for f in os.listdir(failed_folder_path) if f.lower().endswith('.csv')]
-#     print(f"📂 Tìm thấy {len(csv_files)} file CSV trong {failed_folder_path}")
-    
-#     moved_files = []
-    
-#     for csv_file in csv_files:
-#         file_path = os.path.join(failed_folder_path, csv_file)
-#         print(f"\n📄 Đang xử lý file: {csv_file}")
-        
-#         try:
-#             with open(file_path, mode='r', encoding='utf-8') as file:
-#                 reader = csv.reader(file)
-#                 try:
-#                     first_row = next(reader)
-#                     if len(first_row) <= 20:
-#                         print("❌ Lỗi: File không đủ số cột")
-#                         continue
-                        
-#                     room_charge = int(first_row[20])  # Cột U (index 20)
-                    
-#                     if room_charge != 21:
-#                         print(f"⚠️⚠️ Tìm thấy Room Charge {room_charge} - Cần xử lý lại.⚠️⚠️")
-                        
-#                         # Xử lý trùng tên file
-#                         dest_path = Path(target_folder_path) / csv_file
-#                         counter = 1
-#                         while dest_path.exists():
-#                             base, ext = os.path.splitext(csv_file)
-#                             new_name = f"{base}_{counter}{ext}"
-#                             dest_path = Path(target_folder_path) / new_name
-#                             counter += 1
-                        
-#                         shutil.copy2(file_path, dest_path)
-#                         moved_files.append(str(dest_path))
-#                         print(f"✅ Đã sao chép tới: {dest_path}")
-#                     else:
-#                         print("✔️ Room charge là 21 - Good!")
-                        
-#                 except StopIteration:
-#                     print("❌ Lỗi: File rỗng")
-#                 except ValueError:
-#                     print("❌ Lỗi: Giá trị room charge không hợp lệ")
-                    
-#         except Exception as e:
-#             print(f"❌ Lỗi khi xử lý file: {str(e)}")
-    
-#     return moved_files
-
-# def main_loop():
-#     # Tự động xác định thư mục Symphony (từ thư mục chứa script)
-#     script_dir = Path(__file__).parent
-#     symphony_root = script_dir / "Symphony"
-    
-#     print("🟢 Bắt đầu chương trình chạy tự động.")
-#     print(f"📁 Đang quét thư mục Symphony tại: {symphony_root}")
-#     print("⏳ Chạy tự động mỗi 5 phút...")
-    
-#     while True:
-#         try:
-#             current_time = datetime.now()
-#             current_date = current_time.strftime('%d-%m-%Y')
-            
-#             print(f"\n⏰ Bắt đầu chu kỳ kiểm tra lúc {current_time.strftime('%H:%M:%S')}")
-            
-#             # Quét tất cả các outlet (101, 102,...)
-#             outlets = [d for d in symphony_root.iterdir() if d.is_dir() and d.name.isdigit()]
-            
-#             if not outlets:
-#                 print("❌ Không tìm thấy thư mục outlet nào (101, 102,...)")
-#             else:
-#                 total_moved = 0
-                
-#                 for outlet in outlets:
-#                     outlet_name = outlet.name
-#                     print(f"\n🏬 Đang xử lý outlet {outlet_name}")
-                    
-#                     failed_folder = outlet / f"{outlet_name}-cash" / "ThatBai" / current_date
-#                     target_folder = outlet / f"{outlet_name}-cash"
-                    
-#                     if not failed_folder.exists():
-#                         print(f"ℹ️ Không có thư mục ThatBai/{current_date}")
-#                         continue
-                        
-#                     moved_files = process_failed_folder(str(failed_folder), str(target_folder))
-#                     total_moved += len(moved_files)
-                    
-#                     if moved_files:
-#                         print(f"📤 Đã di chuyển {len(moved_files)} file từ outlet {outlet_name}")
-            
-#             print(f"\n✅ Đã xử lý xong. Tổng cộng di chuyển {total_moved} file")
-#             print("⌛ Chờ 5 phút trước khi chạy lại...")
-#             time.sleep(300)  # Chờ 5 phút
-            
-#         except KeyboardInterrupt:
-#             print("\n🛑 Dừng chương trình theo yêu cầu")
-#             break
-#         except Exception as e: # Nếu có lỗi gì tự xảy ra, chương trình tự khời động lại sau 1 phút.
-#             print(f"❌ Lỗi nghiêm trọng: {str(e)}")
-#             print("🔄 Khởi động lại sau 1 phút...")
-#             time.sleep(60)
-
-# if __name__ == "__main__":
-#     main_loop()
 import os
 import sys
 import csv
@@ -143,10 +21,10 @@ class PaymentProcessorApp:
             print(str(self.base_dir) + "Script mode") 
         self.root = root
         self.root.title("Auto Payment Processing Scanner")
-        symphony_root = self.base_dir / "Symphony"
-        if not symphony_root.exists():
-            self.log_message("❌ Không tìm thấy thư mục Symphony", 'error')
-            self.log_message(f"⚠️ Vui lòng đặt file exe cùng cấp với thư mục Symphony", 'warning')
+        simphony_root = self.base_dir / "Simphony"
+        if not simphony_root.exists():
+            self.log_message("❌ Không tìm thấy thư mục Simphony", 'error')
+            self.log_message(f"⚠️ Vui lòng đặt file exe cùng cấp với thư mục Simphony", 'warning')
             return
         
         # Create GUI elements
@@ -263,21 +141,7 @@ class PaymentProcessorApp:
                 self.log_message(f"❌ Error while processing the file: {str(e)}", 'error')
         
         return moved_files
-    # Boolean to check if should switch to the new folder 
-    # def should_switch_to_new_date(current_processing_date):
-    #     """Check if it's time to switch to new date folder (after 2:00 AM)"""
-    #     now = datetime.now()
-        
-    #     # Only switch dates between 2:00 AM and 2:05 AM to avoid multiple switches
-    #     if now.hour == 2 and now.minute < 5:
-    #         new_date = now.strftime('%d-%m-%Y')
-    #         if new_date != current_processing_date:
-    #             return True
-    #     return False
-    # # 
-    # def get_target_date(self):
-    #     now = datetime.now()
-    #     return (now + timedelta(days=1)).date() if now.hour >= 2 else now.date()
+    
     
     def main_loop(self):
         if not self.running:
@@ -291,31 +155,31 @@ class PaymentProcessorApp:
             self.log_message(f"\n⏰ Start scanning on {current_time.strftime('%H:%M:%S')}", 'info')
             self.status_var.set(f"🔍 Scanning date: {current_date}...")
             
-            # Tự động xác định thư mục Symphony
+            # Tự động xác định thư mục Simphony
             script_dir = Path(__file__).parent
-            symphony_root = script_dir / "Symphony"
-            symphony_root1 = Path(os.getcwd())/ "Symphony"
-            print(symphony_root)
-            print(symphony_root1)
+            simphony_root = script_dir / "Simphony"
+            simphony_root1 = Path(os.getcwd())/ "Simphony"
+            print(simphony_root)
+            print(simphony_root1)
 
            
             
-            if not symphony_root.exists():
+            if not simphony_root.exists():
                 try: 
-                    symphony_root = symphony_root1
-                    if not symphony_root.exists():
-                        self.log_message("❌ Still Can not found Symphony folder")
-                        self.log_message("❌ Still Can not found Symphony folder XX", 'error')
+                    simphony_root = simphony_root1
+                    if not simphony_root.exists():
+                        self.log_message("❌ Still Can not found Simphony folder")
+                        self.log_message("❌ Still Can not found Simphony folder XX", 'error')
                         self.after_id = self.root.after(300000, self.main_loop)  # Thử lại sau 5 phút
                         return
                 except Exception as e:
-                       self.log_message("❌ Still Can not found Symphony folder")
-                self.log_message("❌ Can not found Symphony folder, try to put AutoScan.exe same level with Symphony", 'error')
+                       self.log_message("❌ Still Can not found Simphony folder")
+                self.log_message("❌ Can not found Simphony folder, try to put AutoScan.exe same level with Simphony", 'error')
                 self.after_id = self.root.after(300000, self.main_loop)  # Thử lại sau 5 phút
                 return
                 
             # Quét tất cả các outlet (101, 102,...)
-            outlets = [d for d in symphony_root.iterdir() if d.is_dir() and d.name.isdigit()]
+            outlets = [d for d in simphony_root.iterdir() if d.is_dir() and d.name.isdigit()]
             
             if not outlets:
                 self.log_message("❌ Can't find any outlets (101, 102,...)", 'error')
