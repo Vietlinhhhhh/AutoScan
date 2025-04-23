@@ -124,7 +124,8 @@ class PaymentProcessorApp:
         moved_files = []
 
         for csv_file in csv_files:
-            file_path = os.path.join(failed_folder_path, csv_file)
+            if len(csv_file) < 56:
+                file_path = os.path.join(failed_folder_path, csv_file)
             self.log_message(f"\n📄 Processing: {csv_file}", 'info')
 
             try:
