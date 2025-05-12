@@ -12,6 +12,12 @@ CONFIG_FILE = "config.txt"
 
 class PaymentProcessorApp:
     def __init__(self, root):
+        if os.path.exists("daily_count.txt"):
+            with open("daily_count.txt", "r") as f:
+                try:
+                    self.daily_moved_files = int(f.read())
+                except:
+                    self.daily_moved_files = 0
         if getattr(sys, 'frozen', False):
             self.base_dir = Path(sys.executable).parent
             print(str(self.base_dir) + " - exe mode")
@@ -22,6 +28,7 @@ class PaymentProcessorApp:
         self.root = root
         self.root.title("Auto Payment Processing Scanner")
         self.create_widgets()  # <-- Create GUI FIRST
+        
 
         self.simphony_root = self.get_or_select_simphony_folder()  # <-- Now it's safe
         self.move_log_file = self.base_dir / "move_log.txt"
@@ -32,6 +39,8 @@ class PaymentProcessorApp:
 
         self.running = True
         self.after_id = None
+        self.daily_moved_files = 0
+        self.last_reset_date = datetime.now().date()
         self.main_loop()
 
     def create_widgets(self):
@@ -78,6 +87,15 @@ class PaymentProcessorApp:
             anchor=tk.W
         )
         self.status_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.daily_count_var = tk.StringVar()
+        self.daily_count_var.set("📊 Today's moves: 0")
+        self.daily_count_label = tk.Label(
+            self.button_frame,
+            textvariable=self.daily_count_var,
+            fg='blue',
+            anchor=tk.W
+        )
+        self.daily_count_label.pack(side=tk.LEFT, padx=10)
 
     def log_message(self, message, tag=None):
         timestamp = datetime.now().strftime("[%H:%M:%S] ")
@@ -124,7 +142,7 @@ class PaymentProcessorApp:
         moved_files = []
 
         for csv_file in csv_files:
-            if len(csv_file) < 69:
+            if len(csv_file) < 65:
                 file_path = os.path.join(failed_folder_path, csv_file)
             self.log_message(f"\n📄 Processing: {csv_file}", 'info')
 
@@ -141,6 +159,8 @@ class PaymentProcessorApp:
                         room_charge = int(first_row[20])
 
                         if room_charge != 21:
+                            self.daily_moved_files += 1
+                            self.daily_count_var.set(f"📊 Today's moves: {self.daily_moved_files}")
                             self.log_message(f"⚠️ Found Room Charge {room_charge} - Need to process!", 'warning')
                             dest_path = Path(root_folder_path) / csv_file
                             counter = 1
@@ -170,9 +190,14 @@ class PaymentProcessorApp:
         return moved_files
 
     def main_loop(self):
+        
         if not self.running:
             return
-
+        current_date = datetime.now().date()
+        if current_date != self.last_reset_date:
+            self.daily_moved_files = 0
+            self.last_reset_date = current_date
+            self.daily_count_var.set("📊 Today's moves: 0")
         try:
             current_time = datetime.now()
             current_date = current_time.strftime('%d-%m-%Y')
@@ -226,14 +251,19 @@ class PaymentProcessorApp:
         self.status_var.set("🛑 Program stopped")
         self.log_message("\n🛑 Program stopped by user.", 'info')
         self.stop_button.config(state=tk.DISABLED)
-    def log_file_move(self, file_name):
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_line = f"[{timestamp}] Moved file: {file_name}\n"
-        with open(self.move_log_file, "a", encoding="utf-8") as log_file:
-            log_file.write(log_line)
+def log_file_move(self, file_name):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_line = f"[{timestamp}] Moved file: {file_name}\n"
+    with open(self.move_log_file, "a", encoding="utf-8") as log_file:
+        log_file.write(log_line)
+    # Update counter in file
+    with open("daily_count.txt", "w") as f:
+        f.write(str(self.daily_moved_files))
 
 
 if __name__ == "__main__":
+    
     root = tk.Tk()
     app = PaymentProcessorApp(root)
     root.mainloop()
+    
